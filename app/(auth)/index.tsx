@@ -136,6 +136,25 @@ export default function WelcomeScreen() {
               {guestLoading ? 'Signing In...' : 'Continue as Guest'}
             </Text>
           </TouchableOpacity>
+
+          <View style={styles.consentContainer}>
+            <Text style={styles.consentText}>
+              By using Draw It!, you agree to our{' '}
+              <Text 
+                style={styles.consentLink}
+                onPress={() => router.push('/terms')}
+              >
+                Terms of Service
+              </Text>
+              {' '}and{' '}
+              <Text 
+                style={styles.consentLink}
+                onPress={() => router.push('/privacy')}
+              >
+                Privacy Policy
+              </Text>
+            </Text>
+          </View>
         </View>
         
       </ScrollView>
@@ -261,6 +280,20 @@ function createStyles(isDark: boolean, windowWidth?: number) {
       color: isDark ? '#666' : '#999',
       textAlign: 'center',
       lineHeight: 18,
+    },
+    consentContainer: {
+      marginTop: 16,
+      paddingHorizontal: 8,
+    },
+    consentText: {
+      fontSize: 12,
+      color: isDark ? '#666' : '#999',
+      textAlign: 'center',
+      lineHeight: 18,
+    },
+    consentLink: {
+      color: '#007AFF',
+      textDecorationLine: 'underline',
     },
   });
 }

@@ -22,6 +22,7 @@ export default function SignUpScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
   const colorScheme = useColorScheme();
@@ -54,6 +55,15 @@ export default function SignUpScreen() {
         window.alert('Error: Please fill in all fields');
       } else {
         Alert.alert('Error', 'Please fill in all fields');
+      }
+      return;
+    }
+
+    if (!ageConfirmed) {
+      if (Platform.OS === 'web') {
+        window.alert('Error: You must confirm that you are 13 years or older to create an account');
+      } else {
+        Alert.alert('Error', 'You must confirm that you are 13 years or older to create an account');
       }
       return;
     }
@@ -229,6 +239,40 @@ export default function SignUpScreen() {
                 </View>
               </View>
 
+              <TouchableOpacity 
+                style={styles.checkboxContainer}
+                onPress={() => setAgeConfirmed(!ageConfirmed)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.checkbox, ageConfirmed && styles.checkboxChecked]}>
+                  {ageConfirmed && (
+                    <CheckCircle size={18} color={isDark ? '#fff' : '#000'} />
+                  )}
+                </View>
+                <Text style={styles.checkboxLabel}>
+                  I am 13 years or older
+                </Text>
+              </TouchableOpacity>
+
+              <View style={styles.consentContainer}>
+                <Text style={styles.consentText}>
+                  By signing up, you agree to our{' '}
+                  <Text 
+                    style={styles.consentLink}
+                    onPress={() => router.push('/terms')}
+                  >
+                    Terms of Service
+                  </Text>
+                  {' '}and{' '}
+                  <Text 
+                    style={styles.consentLink}
+                    onPress={() => router.push('/privacy')}
+                  >
+                    Privacy Policy
+                  </Text>
+                </Text>
+              </View>
+
               <TouchableOpacity
                 style={[styles.signUpButton, loading && styles.disabledButton]}
                 onPress={handleSignUp}
@@ -378,6 +422,48 @@ function createStyles(isDark: boolean) {
       color: '#007AFF',
       fontSize: 14,
       fontWeight: '600',
+    },
+    consentContainer: {
+      marginTop: 6,
+      marginBottom: 6,
+      paddingHorizontal: 4,
+    },
+    consentText: {
+      fontSize: 12,
+      color: isDark ? '#999' : '#666',
+      textAlign: 'center',
+      lineHeight: 18,
+    },
+    consentLink: {
+      color: '#007AFF',
+      textDecorationLine: 'underline',
+    },
+    checkboxContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 16,
+      marginBottom: 4,
+      paddingHorizontal: 4,
+    },
+    checkbox: {
+      width: 24,
+      height: 24,
+      borderRadius: 6,
+      borderWidth: 2,
+      borderColor: isDark ? '#666' : '#999',
+      marginRight: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'transparent',
+    },
+    checkboxChecked: {
+      borderColor: '#007AFF',
+      backgroundColor: '#007AFF',
+    },
+    checkboxLabel: {
+      fontSize: 15,
+      color: isDark ? '#fff' : '#000',
+      flex: 1,
     },
   });
 }

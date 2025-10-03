@@ -2,6 +2,8 @@
 
 A creative daily drawing challenge app built with React Native, Expo, and Supabase. Draw It! helps artists of all levels improve their skills through AI-powered daily challenges, interactive coaching, and streak tracking.
 
+**🔗 [Live Demo](https://draw-it-pearl.vercel.app/)**
+
 ## ✨ Features
 
 - **Daily Drawing Challenges**: Fresh, AI-generated drawing prompts every day with reference images

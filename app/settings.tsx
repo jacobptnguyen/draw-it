@@ -15,7 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
-import { ChevronLeft, User, Lock, Camera, Trash2 } from 'lucide-react-native';
+import { ChevronLeft, User, Lock, Camera, Trash2, FileText, Shield } from 'lucide-react-native';
 import { Provider } from 'react-native-paper';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
@@ -288,6 +288,20 @@ const SettingsScreen: React.FC = () => {
           title="Change Password"
           subtitle="Update your password"
           onPress={handleChangePassword}
+        />
+
+        <SectionHeader title="Legal" />
+        <SettingItem
+          icon={FileText}
+          title="Terms of Service"
+          subtitle="View our terms and conditions"
+          onPress={() => router.push('/terms')}
+        />
+        <SettingItem
+          icon={Shield}
+          title="Privacy Policy"
+          subtitle="How we handle your data"
+          onPress={() => router.push('/privacy')}
         />
 
         {authUser?.email && (

@@ -1,0 +1,271 @@
+import React, { useEffect } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+  useColorScheme,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { ChevronLeft } from 'lucide-react-native';
+import { StatusBar } from 'expo-status-bar';
+
+export default function PrivacyPolicyScreen() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = createStyles(isDark);
+  const isWeb = Platform.OS === 'web';
+
+  useEffect(() => {
+    if (isWeb && typeof document !== 'undefined') {
+      document.body.style.backgroundColor = isDark ? '#121212' : '#F9FAFB';
+    }
+  }, [isDark, isWeb]);
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <ChevronLeft size={24} color={isDark ? '#E5E7EB' : '#111827'} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Privacy Policy</Text>
+        <View style={styles.headerRight} />
+      </View>
+
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.effectiveDate}>
+          Effective Date: October 3, 2025
+        </Text>
+
+        <Text style={styles.paragraph}>
+          Draw It! ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our application.
+        </Text>
+
+        <Text style={styles.sectionTitle}>1. Information We Collect</Text>
+        
+        <Text style={styles.subsectionTitle}>1.1 Account Information</Text>
+        <Text style={styles.paragraph}>
+          When you create an account, we collect your email address and password. Guest users can use the app without providing personal information, though their data is still stored locally and in our database.
+        </Text>
+
+        <Text style={styles.subsectionTitle}>1.2 User-Generated Content</Text>
+        <Text style={styles.paragraph}>
+          We collect and store drawings, images, and text messages you upload or create within the app. This includes:
+        </Text>
+        <Text style={styles.bulletPoint}>• Images uploaded for AI feedback</Text>
+        <Text style={styles.bulletPoint}>• Chat messages with the AI coach</Text>
+        <Text style={styles.bulletPoint}>• Drawing session data and progress</Text>
+        <Text style={styles.bulletPoint}>• Streak and achievement information</Text>
+
+        <Text style={styles.subsectionTitle}>1.3 Usage Data</Text>
+        <Text style={styles.paragraph}>
+          We automatically collect certain information about how you use the app, including:
+        </Text>
+        <Text style={styles.bulletPoint}>• Session timestamps and durations</Text>
+        <Text style={styles.bulletPoint}>• Features used and actions taken</Text>
+        <Text style={styles.bulletPoint}>• Daily challenge completion status</Text>
+
+        <Text style={styles.sectionTitle}>2. How We Use Your Information</Text>
+        <Text style={styles.paragraph}>
+          We use your information to:
+        </Text>
+        <Text style={styles.bulletPoint}>• Provide AI-powered drawing feedback using OpenAI's GPT-4o</Text>
+        <Text style={styles.bulletPoint}>• Generate daily challenge images using DALL-E 3</Text>
+        <Text style={styles.bulletPoint}>• Track your progress, streaks, and achievements</Text>
+        <Text style={styles.bulletPoint}>• Maintain and improve the app's functionality</Text>
+        <Text style={styles.bulletPoint}>• Authenticate and secure your account</Text>
+        <Text style={styles.bulletPoint}>• Store and retrieve your drawings and chat history</Text>
+
+        <Text style={styles.sectionTitle}>3. Third-Party Services</Text>
+        
+        <Text style={styles.subsectionTitle}>3.1 OpenAI</Text>
+        <Text style={styles.paragraph}>
+          We use OpenAI's API (GPT-4o and DALL-E 3) to provide AI coaching and image generation. When you use our AI features:
+        </Text>
+        <Text style={styles.bulletPoint}>• Your uploaded images and text prompts are sent to OpenAI's servers for processing</Text>
+        <Text style={styles.bulletPoint}>• OpenAI processes this data to generate AI responses and images</Text>
+        <Text style={styles.bulletPoint}>• OpenAI has its own privacy policy and safety measures in place</Text>
+        <Text style={styles.bulletPoint}>• OpenAI may use submitted data to improve their services per their policies</Text>
+        <Text style={styles.paragraph}>
+          <Text style={styles.bold}>Important:</Text> We do not control the AI outputs generated by OpenAI's systems. AI-generated content may contain errors, inaccuracies, or inappropriate material. While OpenAI implements safety measures, no AI system is perfect.
+        </Text>
+        <Text style={styles.paragraph}>
+          Please review OpenAI's Privacy Policy at https://openai.com/privacy for detailed information about their data practices and safety measures.
+        </Text>
+
+        <Text style={styles.subsectionTitle}>3.2 Supabase</Text>
+        <Text style={styles.paragraph}>
+          We use Supabase for authentication, database storage, and file storage:
+        </Text>
+        <Text style={styles.bulletPoint}>• All uploaded images and drawings are stored on Supabase's secure cloud servers</Text>
+        <Text style={styles.bulletPoint}>• Your account information and chat history are stored in Supabase's database</Text>
+        <Text style={styles.bulletPoint}>• Supabase implements industry-standard security measures</Text>
+        <Text style={styles.paragraph}>
+          Your data is stored on Supabase's secure servers. Review Supabase's Privacy Policy at https://supabase.com/privacy for more details.
+        </Text>
+
+        <Text style={styles.sectionTitle}>4. Data Storage and Security</Text>
+        <Text style={styles.paragraph}>
+          We implement industry-standard security measures to protect your data:
+        </Text>
+        <Text style={styles.bulletPoint}>• Encrypted data transmission (HTTPS/SSL)</Text>
+        <Text style={styles.bulletPoint}>• Secure authentication using Supabase Auth</Text>
+        <Text style={styles.bulletPoint}>• Password hashing and protection</Text>
+        <Text style={styles.bulletPoint}>• Regular security updates and monitoring</Text>
+        <Text style={styles.paragraph}>
+          However, no method of transmission over the internet is 100% secure, and we cannot guarantee absolute security.
+        </Text>
+
+        <Text style={styles.sectionTitle}>5. Cookies and Local Storage</Text>
+        <Text style={styles.paragraph}>
+          We use local storage and cookies to:
+        </Text>
+        <Text style={styles.bulletPoint}>• Maintain your login session</Text>
+        <Text style={styles.bulletPoint}>• Store app preferences</Text>
+        <Text style={styles.bulletPoint}>• Cache data for improved performance</Text>
+        <Text style={styles.paragraph}>
+          You can clear this data by logging out or clearing your browser's storage.
+        </Text>
+
+        <Text style={styles.sectionTitle}>6. Your Rights and Data Control</Text>
+        <Text style={styles.paragraph}>
+          You have the right to:
+        </Text>
+        <Text style={styles.bulletPoint}>• Access your personal data at any time through your account</Text>
+        <Text style={styles.bulletPoint}>• Request corrections to your data</Text>
+        <Text style={styles.bulletPoint}>• Delete your account and all associated data</Text>
+        <Text style={styles.bulletPoint}>• Export your drawings and data</Text>
+        <Text style={styles.bulletPoint}>• Request complete deletion of your data from our systems</Text>
+        
+        <Text style={styles.subsectionTitle}>6.1 Right to Delete Your Data</Text>
+        <Text style={styles.paragraph}>
+          You have the absolute right to delete your data at any time. To exercise this right:
+        </Text>
+        <Text style={styles.bulletPoint}>• Go to Settings → Delete Account to permanently remove all your data</Text>
+        <Text style={styles.bulletPoint}>• Contact us at jacobptnguyen@gmail.com to request manual data deletion</Text>
+        <Text style={styles.paragraph}>
+          When you delete your account, we will permanently remove ALL associated data from our systems within 30 days, including account information, uploaded images, drawings, chat messages, and progress data. This action is irreversible.
+        </Text>
+        <Text style={styles.paragraph}>
+          <Text style={styles.bold}>Note:</Text> Data already sent to OpenAI for processing is subject to OpenAI's data retention policies. We recommend reviewing OpenAI's privacy policy for their data handling practices.
+        </Text>
+
+        <Text style={styles.sectionTitle}>7. Children's Privacy</Text>
+        <Text style={styles.paragraph}>
+          Draw It! is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you believe we have collected information from a child under 13, please contact us immediately.
+        </Text>
+
+        <Text style={styles.sectionTitle}>8. Data Retention</Text>
+        <Text style={styles.paragraph}>
+          We retain your data for as long as your account is active. When you delete your account, we permanently remove all associated data from our systems, including:
+        </Text>
+        <Text style={styles.bulletPoint}>• Account information</Text>
+        <Text style={styles.bulletPoint}>• Uploaded images and drawings</Text>
+        <Text style={styles.bulletPoint}>• Chat messages and sessions</Text>
+        <Text style={styles.bulletPoint}>• Progress and achievement data</Text>
+
+        <Text style={styles.sectionTitle}>9. Changes to This Policy</Text>
+        <Text style={styles.paragraph}>
+          We may update this Privacy Policy from time to time. We will notify you of any material changes by updating the "Effective Date" at the top of this policy. Your continued use of the app after changes constitutes acceptance of the updated policy.
+        </Text>
+
+        <Text style={styles.sectionTitle}>10. Contact Information</Text>
+        <Text style={styles.paragraph}>
+          If you have questions, concerns, or requests regarding this Privacy Policy or your data, please contact us:
+        </Text>
+        <Text style={styles.bulletPoint}>• Email: jacobptnguyen@gmail.com</Text>
+        <Text style={styles.paragraph}>
+          We will respond to privacy-related inquiries within 30 days.
+        </Text>
+
+        <Text style={styles.paragraph}>
+          <Text style={styles.bold}>Note:</Text> This is a portfolio project created for educational and demonstration purposes. While we implement industry-standard security measures, this app is primarily for demonstration and learning purposes.
+        </Text>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function createStyles(isDark: boolean) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: isDark ? '#121212' : '#F9FAFB',
+      paddingHorizontal: Platform.OS === 'web' ? 40 : 0,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: isDark ? '#2C2C2E' : '#E5E7EB',
+    },
+    backButton: {
+      padding: 8,
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: isDark ? '#E5E7EB' : '#111827',
+    },
+    headerRight: {
+      width: 40,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    content: {
+      paddingHorizontal: 20,
+      paddingVertical: 24,
+      paddingBottom: 40,
+    },
+    effectiveDate: {
+      fontSize: 14,
+      color: isDark ? '#A1A1AA' : '#6B7280',
+      fontStyle: 'italic',
+      marginBottom: 20,
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: isDark ? '#E5E7EB' : '#111827',
+      marginTop: 28,
+      marginBottom: 12,
+    },
+    subsectionTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: isDark ? '#E5E7EB' : '#111827',
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    paragraph: {
+      fontSize: 15,
+      lineHeight: 24,
+      color: isDark ? '#D1D5DB' : '#374151',
+      marginBottom: 16,
+    },
+    bulletPoint: {
+      fontSize: 15,
+      lineHeight: 24,
+      color: isDark ? '#D1D5DB' : '#374151',
+      marginLeft: 12,
+      marginBottom: 8,
+    },
+    bold: {
+      fontWeight: '700',
+    },
+  });
+}
+
