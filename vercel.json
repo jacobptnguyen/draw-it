@@ -1,8 +1,16 @@
 {
-  "buildCommand": "npx expo export --platform web",
-  "outputDirectory": "dist",
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "buildCommand": "expo export -p web",
+  "outputDirectory": "dist/client",
+  "functions": {
+    "api/index.js": {
+      "runtime": "@vercel/node@5.1.8",
+      "includeFiles": "dist/server/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index"
+    }
   ]
 }
