@@ -5,11 +5,17 @@ import Constants from 'expo-constants';
 
 // Get the API URL based on environment
 const getApiUrl = () => {
-  // Use localhost for development, production URL for deployed app
+  // For web (browser), use relative URL to hit the API route
+  if (typeof window !== 'undefined') {
+    return ''; // Empty string means relative URLs like /api/openai
+  }
+  
+  // For native apps in development
   const debuggerHost = Constants.expoConfig?.hostUri?.split(':')[0];
   if (__DEV__ && debuggerHost) {
     return `http://${debuggerHost}:8081`;
   }
+  
   // For production, use your Vercel deployment URL
   return process.env.EXPO_PUBLIC_API_URL || '';
 };

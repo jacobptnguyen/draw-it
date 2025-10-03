@@ -4,10 +4,17 @@ import { DailyChallenge } from '@/types';
 import Constants from 'expo-constants';
 
 const getApiUrl = () => {
+  // For web (browser), use relative URL to hit the API route
+  if (typeof window !== 'undefined') {
+    return ''; // Empty string means relative URLs like /api/openai
+  }
+  
+  // For native apps in development
   const debuggerHost = Constants.expoConfig?.hostUri?.split(':')[0];
   if (__DEV__ && debuggerHost) {
     return `http://${debuggerHost}:8081`;
   }
+  
   return process.env.EXPO_PUBLIC_API_URL || '';
 };
 
@@ -77,7 +84,10 @@ export function useDailyChallenges() {
   const generateDailyChallenge = async (date: string, isInitialGeneration: boolean = false): Promise<DailyChallenge> => {
     setGeneratingChallenge(true);
     try {
+      console.log('🎨 [useDailyChallenges] Starting challenge generation for date:', date);
+      console.log('🎨 [useDailyChallenges] API_BASE_URL:', API_BASE_URL);
       const systemPrompt = await generateDynamicSystemPrompt();
+      console.log('🎨 [useDailyChallenges] System prompt generated, length:', systemPrompt.length);
 
       const challengeResponse = await fetch(`${API_BASE_URL}/api/openai`, {
         method: 'POST',
@@ -96,26 +106,44 @@ export function useDailyChallenges() {
         }),
       });
 
+      console.log('🎨 [useDailyChallenges] Challenge response status:', challengeResponse.status);
       if (!challengeResponse.ok) {
-        throw new Error('Failed to generate challenge');
+        const errorText = await challengeResponse.text();
+        console.error('🎨 [useDailyChallenges] Challenge generation failed:', errorText);
+        throw new Error(`Failed to generate challenge: ${challengeResponse.status} ${errorText}`);
       }
 
       const challengeResult = await challengeResponse.json();
+      console.log('🎨 [useDailyChallenges] Challenge result received');
       const fullResponse = challengeResult.data?.choices[0]?.message?.content || '';
       
       if (!fullResponse) {
+        console.error('🎨 [useDailyChallenges] No response from OpenAI, result:', challengeResult);
         throw new Error('No response from OpenAI');
       }
+      console.log('🎨 [useDailyChallenges] Challenge text generated, length:', fullResponse.length);
+      console.log('🎨 [useDailyChallenges] Full response from GPT-4o:');
+      console.log(fullResponse);
+      console.log('🎨 [useDailyChallenges] --- End of response ---');
       
-      // Extract challenge text and image prompt
-      const imagePROMPTIndex = fullResponse.indexOf('IMAGE_PROMPT:');
-      if (imagePROMPTIndex === -1) {
-        throw new Error('No IMAGE_PROMPT found in challenge response');
+      // Extract challenge text and image prompt (flexible search for different formats)
+      // Look for: "IMAGE_PROMPT:", "IMAGE PROMPT:", "Image Prompt:", etc.
+      const imagePromptMatch = fullResponse.match(/IMAGE[_\s-]?PROMPT:/i);
+      if (!imagePromptMatch) {
+        console.error('❌ [useDailyChallenges] Could not find IMAGE_PROMPT in response');
+        console.error('❌ [useDailyChallenges] Searched for pattern: /IMAGE[_\\s-]?PROMPT:/i');
+        throw new Error('No IMAGE_PROMPT found in challenge response. GPT-4o may not be following the format.');
       }
 
-      const challengeText = fullResponse.substring(0, imagePROMPTIndex).trim();
-      const imagePrompt = fullResponse.substring(imagePROMPTIndex + 'IMAGE_PROMPT:'.length).trim();
+      const imagePROMPTIndex = imagePromptMatch.index!;
+      const imagePromptMarker = imagePromptMatch[0]; // The actual matched text (e.g., "IMAGE_PROMPT:" or "Image Prompt:")
+      console.log('🎨 [useDailyChallenges] Found image prompt marker:', imagePromptMarker);
 
+      const challengeText = fullResponse.substring(0, imagePROMPTIndex).trim();
+      const imagePrompt = fullResponse.substring(imagePROMPTIndex + imagePromptMarker.length).trim();
+      console.log('🎨 [useDailyChallenges] Image prompt:', imagePrompt);
+
+      console.log('🎨 [useDailyChallenges] Generating reference image with DALL-E...');
       const imageResponse = await fetch(`${API_BASE_URL}/api/openai`, {
         method: 'POST',
         headers: {
@@ -130,15 +158,21 @@ export function useDailyChallenges() {
         }),
       });
 
+      console.log('🎨 [useDailyChallenges] Image response status:', imageResponse.status);
       if (!imageResponse.ok) {
-        throw new Error('Failed to generate reference image');
+        const errorText = await imageResponse.text();
+        console.error('🎨 [useDailyChallenges] Image generation failed:', errorText);
+        throw new Error(`Failed to generate reference image: ${imageResponse.status} ${errorText}`);
       }
 
       const imageResult = await imageResponse.json();
+      console.log('🎨 [useDailyChallenges] Image result received');
       const referenceImageUrl = imageResult.data?.data?.[0]?.url;
       if (!referenceImageUrl) {
-        throw new Error('Failed to generate reference image');
+        console.error('🎨 [useDailyChallenges] No image URL in result:', imageResult);
+        throw new Error('Failed to generate reference image URL');
       }
+      console.log('🎨 [useDailyChallenges] Reference image generated successfully:', referenceImageUrl);
 
       const titleMatch = challengeText.match(/\*\*Today's Challenge:\*\*\s*(.+)/);
       const descriptionMatch = challengeText.match(/\*\*Description:\*\*\s*(.+)/);
@@ -187,9 +221,12 @@ export function useDailyChallenges() {
         throw new Error(`Failed to save challenge: ${insertError.message}`);
       }
       
+      console.log('🎨 [useDailyChallenges] Challenge saved to database successfully');
       return challengeData;
     } catch (error) {
-      console.error('Error generating daily challenge:', error);
+      console.error('❌ [useDailyChallenges] Error generating daily challenge:', error);
+      console.error('❌ [useDailyChallenges] Error details:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('❌ [useDailyChallenges] Returning fallback challenge');
       return {
         id: `fallback-${date}`,
         challenge_date: date,
@@ -231,9 +268,20 @@ export function useDailyChallenges() {
         challenge => challenge.challenge_date === today
       );
 
-      if (todayChallenge) {
+      if (todayChallenge && todayChallenge.thumbnail_url) {
+        // Challenge exists and has a thumbnail, use it
         setTodaysChallenge(todayChallenge);
+      } else if (todayChallenge && !todayChallenge.thumbnail_url) {
+        // Challenge exists but is incomplete (no thumbnail), regenerate it
+        console.log('🎨 [useDailyChallenges] Found incomplete challenge, regenerating...');
+        const newChallenge = await generateDailyChallenge(today);
+        setTodaysChallenge(newChallenge);
+        setChallenges(prev => {
+          const filtered = prev.filter(c => c.challenge_date !== today);
+          return [...filtered, newChallenge];
+        });
       } else {
+        // No challenge exists, generate a new one
         const newChallenge = await generateDailyChallenge(today);
         setTodaysChallenge(newChallenge);
         setChallenges(prev => [...prev, newChallenge]);
