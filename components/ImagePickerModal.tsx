@@ -8,6 +8,7 @@ import {
   useColorScheme,
   Modal,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -27,7 +28,8 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
   onImageSelected,
   title = "Select Image",
 }) => {
-  const { requestPhotoAccess, requestCameraAccess, isUploading } = useImagePicker();
+  const { requestPhotoAccess, requestCameraAccess, uploadImage } = useImagePicker();
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -41,13 +43,16 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
     }
   }, [isDark, isWeb]);
 
-  const processImage = async (uri: string) => {
+  const processAndUploadImage = async (uri: string) => {
     try {
+      setIsProcessing(true);
+      console.log('📸 [ImagePickerModal] Processing image:', uri);
+      
       // Resize the image for better performance
       const manipResult = await ImageManipulator.manipulateAsync(
         uri,
         [
-          { resize: { width: 800, height: 800 } }
+          { resize: { width: 1024 } } // Resize to max width 1024px, maintains aspect ratio
         ],
         { 
           compress: 0.8, 
@@ -55,16 +60,25 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
         }
       );
 
-      // Call the callback with the processed image URI
-      onImageSelected(manipResult.uri);
+      console.log('✅ [ImagePickerModal] Image processed, uploading..');
+      
+      // Upload to Supabase and get the public URL
+      const publicUrl = await uploadImage(manipResult.uri);
+      
+      console.log('✅ [ImagePickerModal] Image uploaded successfully:', publicUrl);
+      
+      // Call the callback with the Supabase public URL (not the local URI)
+      onImageSelected(publicUrl);
       onClose();
     } catch (error) {
-      console.error('Error processing image:', error);
+      console.error('❌ [ImagePickerModal] Error processing/uploading image:', error);
       if (Platform.OS === 'web') {
-        window.alert('Error: Failed to process image. Please try again.');
+        window.alert('Error: Failed to process and upload image. Please try again.');
       } else {
-        Alert.alert('Error', 'Failed to process image. Please try again.');
+        Alert.alert('Error', 'Failed to process and upload image. Please try again.');
       }
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -85,9 +99,10 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
       });
 
       if (!result.canceled && result.assets[0]) {
-        await processImage(result.assets[0].uri);
+        await processAndUploadImage(result.assets[0].uri);
       }
     } catch (error) {
+      console.error('❌ Camera error:', error);
       if (Platform.OS === 'web') {
         window.alert('Error: Failed to take photo');
       } else {
@@ -120,10 +135,10 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
       });
 
       if (!result.canceled && result.assets[0]) {
-        await processImage(result.assets[0].uri);
+        await processAndUploadImage(result.assets[0].uri);
       }
     } catch (error) {
-      console.error('Gallery picker error:', error);
+      console.error('❌ Gallery picker error:', error);
       if (Platform.OS === 'web') {
         window.alert('Error: Failed to pick image');
       } else {
@@ -143,7 +158,7 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
         <View style={styles.modalView}>
           <View style={styles.header}>
             <Text style={styles.modalTitle}>{title}</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton} disabled={isProcessing}>
               <X size={24} color={isDark ? '#E5E7EB' : '#111827'} />
             </TouchableOpacity>
           </View>
@@ -153,7 +168,7 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
               <TouchableOpacity
                 style={styles.option}
                 onPress={pickImageFromCamera}
-                disabled={isUploading}
+                disabled={isProcessing}
               >
                 <View style={styles.optionIcon}>
                   <Camera size={32} color={isDark ? '#E5E7EB' : '#111827'} />
@@ -165,7 +180,7 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
             <TouchableOpacity
               style={[styles.option, isWeb && styles.optionFullWidth]}
               onPress={pickImageFromGallery}
-              disabled={isUploading}
+              disabled={isProcessing}
             >
               <View style={styles.optionIcon}>
                 <ImageIcon size={32} color={isDark ? '#E5E7EB' : '#111827'} />
@@ -176,8 +191,11 @@ const ImagePickerModal: React.FC<ImagePickerModalProps> = ({
             </TouchableOpacity>
           </View>
 
-          {isUploading && (
-            <Text style={styles.uploadingText}>Processing...</Text>
+          {isProcessing && (
+            <View style={styles.uploadingContainer}>
+              <ActivityIndicator size="small" color={isDark ? '#E5E7EB' : '#111827'} />
+              <Text style={styles.uploadingText}>Uploading...</Text>
+            </View>
           )}
         </View>
       </View>
@@ -253,10 +271,16 @@ const createStyles = (isDark: boolean) => {
     color: isDark ? '#E5E7EB' : '#111827',
     textAlign: 'center',
   },
+  uploadingContainer: {
+    marginTop: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   uploadingText: {
-    marginTop: 16,
     fontSize: 14,
     color: isDark ? '#A1A1AA' : '#6B7280',
+    fontWeight: '500',
   },
   });
 };

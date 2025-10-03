@@ -136,7 +136,7 @@ export const useImagePicker = () => {
     const granted = status === ImagePicker.PermissionStatus.GRANTED;
     
     if (!granted) {
-      if (Platform.OS === 'web') {
+      if (Platform.OS === 'web' as any) {
         window.alert('Camera Access Needed\n\nPlease allow camera access to take photos.');
       } else {
         Alert.alert(
@@ -172,31 +172,54 @@ export const useImagePicker = () => {
   const uploadImage = async (uri: string, previousImageUrl?: string): Promise<string> => {
     setIsUploading(true);
     try {
+      console.log('📤 [useImagePicker] Starting upload for URI:', uri);
+      
       if (previousImageUrl) {
         await deletePreviousImage(previousImageUrl);
       }
 
-      const file = new File(uri);
-      const arrayBuffer = await file.arrayBuffer();
+      let fileData: ArrayBuffer | Blob;
+      
+      // Handle web vs native differently
+      if (Platform.OS === 'web') {
+        console.log('🌐 [useImagePicker] Web platform detected, fetching blob...');
+        // On web, the URI is a blob URL, so we fetch it
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        fileData = blob;
+        console.log('✅ [useImagePicker] Blob fetched, size:', blob.size);
+      } else {
+        console.log('📱 [useImagePicker] Native platform detected, using File API...');
+        // On native, use the File class from expo-file-system
+        const file = new File(uri);
+        fileData = await file.arrayBuffer();
+        console.log('✅ [useImagePicker] File loaded');
+      }
       
       const fileName = `user-images/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+      console.log('📂 [useImagePicker] Uploading as:', fileName);
       
       const { data, error } = await supabase.storage
         .from('drawings')
-        .upload(fileName, arrayBuffer, {
+        .upload(fileName, fileData, {
           contentType: 'image/jpeg',
           upsert: true,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [useImagePicker] Supabase upload error:', error);
+        throw error;
+      }
 
+      console.log('✅ [useImagePicker] Upload successful, getting public URL...');
       const { data: { publicUrl } } = supabase.storage
         .from('drawings')
         .getPublicUrl(fileName);
 
+      console.log('🎉 [useImagePicker] Public URL obtained:', publicUrl);
       return publicUrl;
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error('❌ [useImagePicker] Error uploading image:', error);
       throw new Error('Failed to upload image');
     } finally {
       setIsUploading(false);
